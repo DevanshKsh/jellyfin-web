@@ -10,7 +10,7 @@ import { equalsIgnoreCase } from 'utils/string';
 import { ConnectionMode } from './connectionMode';
 import { ConnectionState } from './connectionState';
 import { compareVersions } from './utils/compareVersions';
-
+import {DEFAULT_JELLYFIN_SERVERS} from '../../../config/jellyfin.config';
 const DEFAULT_CONNECTION_TIMEOUT = 20000;
 
 function getServerAddress(server, mode) {
@@ -54,12 +54,12 @@ function sortByAccess(a, b) {
 }
 
 export default class ConnectionManager {
-    constructor(credentialProvider, appName, appVersion, deviceName, deviceId, capabilities) {
+    constructor(credentialProvider, appName, appVersion, deviceName, deviceId, capabilities,defaultServers = DEFAULT_JELLYFIN_SERVERS) {
         console.log('Begin ConnectionManager constructor');
 
         const self = this;
         this._apiClients = [];
-
+        this._defaultServers = defaultServers;
         // Set the minimum version to match the SDK
         self._minServerVersion = MINIMUM_VERSION;
 
@@ -359,6 +359,27 @@ export default class ConnectionManager {
 
             // Clone the array
             const credentials = credentialProvider.credentials();
+            // const credentials={Servers:[{"ManualAddress":"https://thikxa-api.9812398.xyz","LastConnectionMode":2,"Name":"thikxa","Id":"6e98d35ad5074327ad00ced374b0c218","LocalAddress":"http://10.0.0.8:8096","DateLastAccessed":1764527257915}]}
+            // console.log(credentials.Servers);
+
+            if (!credentials.Servers || !credentials.Servers.length) {
+                const now = Date.now();
+
+                const seeded = (self._defaultServers || []).map((cfg, index) => ({
+                    Id: cfg.id || `default-${index}`,           // stable id from config if possible
+                    Name: cfg.name || 'Default Jellyfin',
+                    ManualAddress: cfg.manualAddress,
+                    LocalAddress: cfg.localAddress || null,
+                    RemoteAddress: cfg.remoteAddress || null,
+                    LastConnectionMode: cfg.manualAddress
+                        ? ConnectionMode.Manual
+                        : ConnectionMode.Local,
+                    DateLastAccessed: now
+                }));
+
+                credentials.Servers = seeded;
+                credentialProvider.credentials(credentials);
+            }
 
             return findServers().then(foundServers => {
                 const servers = credentials.Servers.slice(0);
