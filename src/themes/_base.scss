@@ -68,10 +68,10 @@ html {
 }
 
 .pageTitleWithDefaultLogo {
-    background-image: if($dark, url(@jellyfin/ux-web/banner-light.png), url(@jellyfin/ux-web/banner-dark.png));
+    background-image: if($dark, url("https://res.cloudinary.com/dnreddsyb/image/upload/v1763970009/thikxa-logo_iedbwq.png"), url("https://res.cloudinary.com/dnreddsyb/image/upload/v1763970009/thikxa-logo_iedbwq.png"));
 
     .layout-tv & {
-        background-image: url(@jellyfin/ux-web/icon-transparent.png);
+        background-image: url("https://res.cloudinary.com/dnreddsyb/image/upload/v1763970009/thikxa-logo_iedbwq.png");
     }
 }
 
